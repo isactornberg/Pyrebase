@@ -30,6 +30,7 @@ def initialize_app(config):
 
 class Firebase:
     """ Firebase Interface """
+
     def __init__(self, config):
         self.api_key = config["apiKey"]
         self.auth_domain = config["authDomain"]
@@ -45,9 +46,11 @@ class Firebase:
             ]
             service_account_type = type(config["serviceAccount"])
             if service_account_type is str:
-                self.credentials = ServiceAccountCredentials.from_json_keyfile_name(config["serviceAccount"], scopes)
+                self.credentials = ServiceAccountCredentials.from_json_keyfile_name(
+                    config["serviceAccount"], scopes)
             if service_account_type is dict:
-                self.credentials = ServiceAccountCredentials.from_json_keyfile_dict(config["serviceAccount"], scopes)
+                self.credentials = ServiceAccountCredentials.from_json_keyfile_dict(
+                    config["serviceAccount"], scopes)
         if is_appengine_sandbox():
             # Fix error in standard GAE environment
             # is releated to https://github.com/kennethreitz/requests/issues/3187
@@ -71,6 +74,7 @@ class Firebase:
 
 class Auth:
     """ Authentication Service """
+
     def __init__(self, api_key, requests, credentials):
         self.api_key = api_key
         self.current_user = None
@@ -78,9 +82,11 @@ class Auth:
         self.credentials = credentials
 
     def sign_in_with_email_and_password(self, email, password):
-        request_ref = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPassword?key={0}".format(self.api_key)
+        request_ref = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPassword?key={0}".format(
+            self.api_key)
         headers = {"content-type": "application/json; charset=UTF-8"}
-        data = json.dumps({"email": email, "password": password, "returnSecureToken": True})
+        data = json.dumps(
+            {"email": email, "password": password, "returnSecureToken": True})
         request_object = requests.post(request_ref, headers=headers, data=data)
         raise_detailed_error(request_object)
         self.current_user = request_object.json()
@@ -101,7 +107,8 @@ class Auth:
         return jwt.generate_jwt(payload, private_key, "RS256", exp)
 
     def sign_in_with_custom_token(self, token):
-        request_ref = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyCustomToken?key={0}".format(self.api_key)
+        request_ref = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyCustomToken?key={0}".format(
+            self.api_key)
         headers = {"content-type": "application/json; charset=UTF-8"}
         data = json.dumps({"returnSecureToken": True, "token": token})
         request_object = requests.post(request_ref, headers=headers, data=data)
@@ -109,9 +116,11 @@ class Auth:
         return request_object.json()
 
     def refresh(self, refresh_token):
-        request_ref = "https://securetoken.googleapis.com/v1/token?key={0}".format(self.api_key)
+        request_ref = "https://securetoken.googleapis.com/v1/token?key={0}".format(
+            self.api_key)
         headers = {"content-type": "application/json; charset=UTF-8"}
-        data = json.dumps({"grantType": "refresh_token", "refreshToken": refresh_token})
+        data = json.dumps({"grantType": "refresh_token",
+                           "refreshToken": refresh_token})
         request_object = requests.post(request_ref, headers=headers, data=data)
         raise_detailed_error(request_object)
         request_object_json = request_object.json()
@@ -124,7 +133,8 @@ class Auth:
         return user
 
     def get_account_info(self, id_token):
-        request_ref = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/getAccountInfo?key={0}".format(self.api_key)
+        request_ref = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/getAccountInfo?key={0}".format(
+            self.api_key)
         headers = {"content-type": "application/json; charset=UTF-8"}
         data = json.dumps({"idToken": id_token})
         request_object = requests.post(request_ref, headers=headers, data=data)
@@ -132,7 +142,8 @@ class Auth:
         return request_object.json()
 
     def send_email_verification(self, id_token):
-        request_ref = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/getOobConfirmationCode?key={0}".format(self.api_key)
+        request_ref = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/getOobConfirmationCode?key={0}".format(
+            self.api_key)
         headers = {"content-type": "application/json; charset=UTF-8"}
         data = json.dumps({"requestType": "VERIFY_EMAIL", "idToken": id_token})
         request_object = requests.post(request_ref, headers=headers, data=data)
@@ -140,7 +151,8 @@ class Auth:
         return request_object.json()
 
     def send_password_reset_email(self, email):
-        request_ref = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/getOobConfirmationCode?key={0}".format(self.api_key)
+        request_ref = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/getOobConfirmationCode?key={0}".format(
+            self.api_key)
         headers = {"content-type": "application/json; charset=UTF-8"}
         data = json.dumps({"requestType": "PASSWORD_RESET", "email": email})
         request_object = requests.post(request_ref, headers=headers, data=data)
@@ -148,7 +160,8 @@ class Auth:
         return request_object.json()
 
     def verify_password_reset_code(self, reset_code, new_password):
-        request_ref = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/resetPassword?key={0}".format(self.api_key)
+        request_ref = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/resetPassword?key={0}".format(
+            self.api_key)
         headers = {"content-type": "application/json; charset=UTF-8"}
         data = json.dumps({"oobCode": reset_code, "newPassword": new_password})
         request_object = requests.post(request_ref, headers=headers, data=data)
@@ -156,9 +169,11 @@ class Auth:
         return request_object.json()
 
     def create_user_with_email_and_password(self, email, password):
-        request_ref = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/signupNewUser?key={0}".format(self.api_key)
-        headers = {"content-type": "application/json; charset=UTF-8" }
-        data = json.dumps({"email": email, "password": password, "returnSecureToken": True})
+        request_ref = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/signupNewUser?key={0}".format(
+            self.api_key)
+        headers = {"content-type": "application/json; charset=UTF-8"}
+        data = json.dumps(
+            {"email": email, "password": password, "returnSecureToken": True})
         request_object = requests.post(request_ref, headers=headers, data=data)
         raise_detailed_error(request_object)
         return request_object.json()
@@ -166,6 +181,7 @@ class Auth:
 
 class Database:
     """ Database Service """
+
     def __init__(self, credentials, api_key, database_url, requests):
 
         if not database_url.endswith('/'):
@@ -241,7 +257,8 @@ class Database:
             else:
                 parameters[param] = self.build_query[param]
         # reset path and build_query for next query
-        request_ref = '{0}{1}.json?{2}'.format(self.database_url, self.path, urlencode(parameters))
+        request_ref = '{0}{1}.json?{2}'.format(
+            self.database_url, self.path, urlencode(parameters))
         self.path = ""
         self.build_query = {}
         return request_ref
@@ -278,18 +295,22 @@ class Database:
         sorted_response = None
         if build_query.get("orderBy"):
             if build_query["orderBy"] == "$key":
-                sorted_response = sorted(request_dict.items(), key=lambda item: item[0])
+                sorted_response = sorted(
+                    request_dict.items(), key=lambda item: item[0])
             elif build_query["orderBy"] == "$value":
-                sorted_response = sorted(request_dict.items(), key=lambda item: item[1])
+                sorted_response = sorted(
+                    request_dict.items(), key=lambda item: item[1])
             else:
-                sorted_response = sorted(request_dict.items(), key=lambda item: item[1][build_query["orderBy"]])
+                sorted_response = sorted(request_dict.items(
+                ), key=lambda item: item[1][build_query["orderBy"]])
         return PyreResponse(convert_to_pyre(sorted_response), query_key)
 
     def push(self, data, token=None, json_kwargs={}):
         request_ref = self.check_token(self.database_url, self.path, token)
         self.path = ""
         headers = self.build_headers(token)
-        request_object = self.requests.post(request_ref, headers=headers, data=json.dumps(data, **json_kwargs).encode("utf-8"))
+        request_object = self.requests.post(
+            request_ref, headers=headers, data=json.dumps(data, **json_kwargs).encode("utf-8"))
         raise_detailed_error(request_object)
         return request_object.json()
 
@@ -297,7 +318,8 @@ class Database:
         request_ref = self.check_token(self.database_url, self.path, token)
         self.path = ""
         headers = self.build_headers(token)
-        request_object = self.requests.put(request_ref, headers=headers, data=json.dumps(data, **json_kwargs).encode("utf-8"))
+        request_object = self.requests.put(
+            request_ref, headers=headers, data=json.dumps(data, **json_kwargs).encode("utf-8"))
         raise_detailed_error(request_object)
         return request_object.json()
 
@@ -305,7 +327,8 @@ class Database:
         request_ref = self.check_token(self.database_url, self.path, token)
         self.path = ""
         headers = self.build_headers(token)
-        request_object = self.requests.patch(request_ref, headers=headers, data=json.dumps(data, **json_kwargs).encode("utf-8"))
+        request_object = self.requests.patch(
+            request_ref, headers=headers, data=json.dumps(data, **json_kwargs).encode("utf-8"))
         raise_detailed_error(request_object)
         return request_object.json()
 
@@ -339,7 +362,8 @@ class Database:
         new_id = "".join(time_stamp_chars)
         if not duplicate_time:
             for i in range(0, 12):
-                self.last_rand_chars.append(int(math.floor(uniform(0, 1) * 64)))
+                self.last_rand_chars.append(
+                    int(math.floor(uniform(0, 1) * 64)))
         else:
             for i in range(0, 11):
                 if self.last_rand_chars[i] == 63:
@@ -362,13 +386,15 @@ class Database:
 
 class Storage:
     """ Storage Service """
+
     def __init__(self, credentials, storage_bucket, requests):
         self.storage_bucket = "https://firebasestorage.googleapis.com/v0/b/" + storage_bucket
         self.credentials = credentials
         self.requests = requests
         self.path = ""
         if credentials:
-            client = storage.Client(credentials=credentials, project=storage_bucket)
+            client = storage.Client(
+                credentials=credentials, project=storage_bucket)
             self.bucket = client.get_bucket(storage_bucket)
 
     def child(self, *args):
@@ -392,7 +418,8 @@ class Storage:
         request_ref = self.storage_bucket + "/o?name={0}".format(path)
         if token:
             headers = {"Authorization": "Firebase " + token}
-            request_object = self.requests.post(request_ref, headers=headers, data=file_object)
+            request_object = self.requests.post(
+                request_ref, headers=headers, data=file_object)
             raise_detailed_error(request_object)
             return request_object.json()
         elif self.credentials:
@@ -526,8 +553,11 @@ class ClosableSSEClient(SSEClient):
     def close(self):
         self.should_connect = False
         self.retry = 0
-        self.resp.raw._fp.fp.raw._sock.shutdown(socket.SHUT_RDWR)
-        self.resp.raw._fp.fp.raw._sock.close()
+        try:
+            self.resp.raw._fp.fp._sock.shutdown(socket.SHUT_RDWR)
+            self.resp.raw._fp.fp._sock.close()
+        except AttributeError:
+            pass
 
 
 class Stream:
@@ -553,7 +583,8 @@ class Stream:
         return self
 
     def start_stream(self):
-        self.sse = ClosableSSEClient(self.url, session=self.make_session(), build_headers=self.build_headers)
+        self.sse = ClosableSSEClient(
+            self.url, session=self.make_session(), build_headers=self.build_headers)
         for msg in self.sse:
             if msg:
                 msg_data = json.loads(msg.data)
@@ -567,5 +598,4 @@ class Stream:
             time.sleep(0.001)
         self.sse.running = False
         self.sse.close()
-        self.thread.join()
         return self
