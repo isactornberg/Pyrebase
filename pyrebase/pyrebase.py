@@ -556,7 +556,7 @@ class ClosableSSEClient(SSEClient):
         try:
             self.resp.raw._fp.fp._sock.shutdown(socket.SHUT_RDWR)
             self.resp.raw._fp.fp._sock.close()
-        except AttributeError:
+        except (TypeError, AttributeError):
             pass
 
 
